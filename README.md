@@ -75,3 +75,5 @@ The important variables and settings are commented in the code, here's the most 
 ## Credits
 
 Special thanks to the folk in Guard Bot's support chat who were a great help in the making of these and provided the early version of the captcha plugin I based most of these on.
+
+Guard Bot project can be found at: https://github.com/thedevs-network/the-guard-bot
