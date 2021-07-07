@@ -44,8 +44,6 @@ The important variables and settings are commented in the code, here's the most 
 - feedback: A Boolean, if true, the bot will provide feedback each time a new member is kicked out for failing the profile check.
 - tolerance: A Number, a value from 1 to 3, determines the number of profile checks the new member must fail to be kicked out, 2 out of 3 by default.
 
-Coming Soon: Remembering which users already attempted to join so they don't get kicked again when they join again after the kick cooldown expires.
-
 ## Raid Mode
 
 This plugin kicks all new members, no questions asked, useful when your chat is experiencing a disruptive influx of spam bots and malicious users joining in massive numbers.
