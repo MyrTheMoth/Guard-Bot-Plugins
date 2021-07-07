@@ -6,8 +6,8 @@ import TgUtils = require("../utils/tg");
 import Log = require("../utils/log");
 
 let active = true; // If True, Bot will issue Captcha Challenges for new Members.
-const seconds = 1800; // Time before Bot kicks the user for not answer, 30 minutes (1800 seconds) by default.
-const minutes = seconds / 60;
+const challengeTimeout = 1800; // Time before Bot kicks the user for not answer, 30 minutes (1800 seconds) by default.
+const minutes = challengeTimeout / 60;
 const kickCooldown = 300; // Time before a kicked user can attempt to join the chat again in 5 minutes (300 seconds) by default.
 const strict = true; // If True, deletes all messages by unverified users that aren't answers.
 const maxAttempts = 3; // Max number of attempts before kicking the unverified user.
@@ -85,7 +85,7 @@ const challenge = (
                     return ctx.deleteMessage(c.messageId);
                 })
                 .catch((err) => logError("[captcha] " + err.message));
-        }, seconds * 1000) as unknown) as number,
+        }, challengeTimeout * 1000) as unknown) as number,
         math: [`${a} ${op} ${b}`, result] as [string, number],
         messageId: 0,
         deleteList: [],
