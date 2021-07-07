@@ -31,20 +31,17 @@ const { logError } = Log;
 type Slow = {
     user: User;
     chat: string;
-    muteTimeout: number;
     messageCounter: number;
     lastMessageDate: Date;
 };
 
 const slowing = (
-    slowening: Slow[],
     ctx: ExtendedContext,
     x: User,
 ): Slow => {
     const s = {
         user: x,
         chat: "",
-        muteTimeout: mutingTime,
         messageCounter: 0,
         lastMessageDate: new Date(),
     };
@@ -96,7 +93,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
     //logError("[slowmode] New Message from Member in List: " + inList);
 
     if (active && !ctx.from?.is_bot && !inList) {
-        const s = slowing(slowList, ctx, ctx.from);
+        const s = slowing(ctx, ctx.from);
         slowList.push(s);
         s.chat = String(ctx.chat?.id);
     }
