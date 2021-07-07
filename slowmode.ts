@@ -4,6 +4,7 @@ import Telegraf = require("telegraf");
 import HtmlUtils = require("../utils/html");
 import TgUtils = require("../utils/tg");
 import Log = require("../utils/log");
+import UserStore = require('../stores/user');
 
 let active = true; // If True, Bot will mute users who post too many messages too quickly.
 const mutingTime = 300; // Time a slowed user will be muted for in seconds, 5 minutes (300 seconds) by default.
@@ -27,6 +28,7 @@ const { Composer: C } = Telegraf;
 const { html } = HtmlUtils;
 const { link } = TgUtils;
 const { logError } = Log;
+const { getAdmins } = UserStore;
 
 type Slow = {
     user: User;
@@ -50,7 +52,20 @@ const slowing = (
 
 const slowList: Slow[] = [];
 
+const adminList: number[] = [];
+
 export = C.mount("message", async (ctx: ExtendedContext, next) => {
+    // Populate the list of Admins
+    if (adminList.length < 1) {
+        const admins = await getAdmins();
+        //logError(admins);
+        for (let i = 0; i < admins.length; i++) {
+            adminList.push(admins[i].id);
+        }
+        //logError(adminList);
+    }
+
+    //Plugin Commands
     if (ctx.message?.entities?.[0].type === "bot_command") {
         const text = ctx.message?.text;
         const match = text.match(/^\/([^\s]+)\s?(.+)?/);
@@ -65,9 +80,9 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             }
         }
 
+        // Enable/Disable Command
         if (command === "slowmode") {
-            const member = await ctx.getChatMember(ctx.from?.id);
-            if (member && (member.status === 'creator' || member.status === 'administrator')) {
+            if (adminList.indexOf(ctx.from?.id) >= 0) {
                 if (args !== null) {
                     if (args[0] === "on") {
                         active = true;
@@ -86,13 +101,13 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    var inList = false;
+    let inList = false;
 
     slowList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
 
     //logError("[slowmode] New Message from Member in List: " + inList);
 
-    if (active && !ctx.from?.is_bot && !inList) {
+    if (active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
         const s = slowing(ctx, ctx.from);
         slowList.push(s);
         s.chat = String(ctx.chat?.id);
@@ -140,7 +155,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             can_pin_messages: mutedOptions.can_pin_messages
         }
         return Promise.all([
-            msg = await ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${minutes} minutes`),
+            ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${minutes} minutes`),
             ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
             currentMessage.messageCounter = 0,
         ]).catch((err) => logError("[slowmode] " + err.message));

@@ -4,6 +4,7 @@ import Telegraf = require("telegraf");
 import HtmlUtils = require("../utils/html");
 import TgUtils = require("../utils/tg");
 import Log = require("../utils/log");
+import UserStore = require('../stores/user');
 
 let active = true; // If True, module is active and will kick profiles depending on the criteria you setup.
 const kickCooldown = 300; // Time before a kicked user can attempt to join the chat again in 5 minutes (300 seconds) by default.
@@ -17,10 +18,24 @@ const { Composer: C } = Telegraf;
 const { html } = HtmlUtils;
 const { link } = TgUtils;
 const { logError } = Log;
+const { getAdmins } = UserStore;
 
 const kickedOnce: number[] = [];
 
+const adminList: number[] = [];
+
 export = C.mount("message", async (ctx: ExtendedContext, next) => {
+    // Populate the list of Admins
+    if (adminList.length < 1) {
+        const admins = await getAdmins();
+        //logError(admins);
+        for (let i = 0; i < admins.length; i++) {
+            adminList.push(admins[i].id);
+        }
+        //logError(adminList);
+    }
+
+    //Plugin Commands
     if (ctx.message?.entities?.[0].type === "bot_command") {
         const text = ctx.message?.text;
         const match = text.match(/^\/([^\s]+)\s?(.+)?/);
@@ -35,9 +50,9 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             }
         }
 
+        // Enable/Disable Command
         if (command === "noinfokick") {
-            const member = await ctx.getChatMember(ctx.from?.id);
-            if (member && (member.status === 'creator' || member.status === 'administrator')) {
+            if (adminList.indexOf(ctx.from?.id) >= 0) {
                 if (args !== null) {
                     if (args[0] === "on") {
                         active = true;
