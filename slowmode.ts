@@ -5,12 +5,14 @@ import HtmlUtils = require("../utils/html");
 import TgUtils = require("../utils/tg");
 import Log = require("../utils/log");
 import UserStore = require('../stores/user');
+import Files = require('fs');
 
-let active = true; // If True, Bot will mute users who post too many messages too quickly.
-const mutingTime = 300; // Time a slowed user will be muted for in seconds, 5 minutes (300 seconds) by default.
-const minutes = mutingTime / 60;
-const postingInterval = 1 // Time between messages to count as a penalty in seconds, 1 by default.
-const maxMessages = 10; // Max amount of messages allowed within the posting interval, 10 by default.
+let settings = {
+    active: true, // If True, Bot will mute users who post too many messages too quickly.
+    mutingTime: 300, // Time a slowed user will be muted for in seconds, 5 minutes (300 seconds) by default.
+    postingInterval: 1, // Time between messages to count as a penalty in seconds, 1 by default.
+    maxMessages: 10 // Max amount of messages allowed within the posting interval, 10 by default.
+}
 
 // Permissions for muted user.
 const mutedOptions = {
@@ -29,6 +31,7 @@ const { html } = HtmlUtils;
 const { link } = TgUtils;
 const { logError } = Log;
 const { getAdmins } = UserStore;
+const fs = Files;
 
 type Slow = {
     user: User;
@@ -54,6 +57,35 @@ const slowList: Slow[] = [];
 
 const adminList: number[] = [];
 
+const settingsFile = "./plugins/slowmode.json";
+
+// If a settings file exists, read it and update our settings with it.
+fs.access(settingsFile, fs.F_OK, (err) => {
+    if (err) {
+        logError("[slowmode] " + err.message);
+        return;
+    }
+    fs.readFile(settingsFile, "utf-8", (err, data) => {
+        if (err) {
+            logError("[slowmode] " + err.message);
+            return;
+        }
+        settings = JSON.parse(data.toString());
+    });
+});
+
+// Update the settings file with our current settings object.
+function updateSettings() {
+    const data = JSON.stringify(settings);
+
+    fs.writeFile(settingsFile, data, (err) => {
+        if (err) {
+            logError("[slowmode] " + err.message);
+            return;
+        }
+    });
+}
+
 export = C.mount("message", async (ctx: ExtendedContext, next) => {
     // Populate the list of Admins
     if (adminList.length < 1) {
@@ -65,7 +97,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         //logError(adminList);
     }
 
-    //Plugin Commands
+    //Plugin Commands.
     if (ctx.message?.entities?.[0].type === "bot_command") {
         const text = ctx.message?.text;
         const match = text.match(/^\/([^\s]+)\s?(.+)?/);
@@ -80,19 +112,91 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             }
         }
 
-        // Enable/Disable Command
+        // Command arguments (/slowmode).
         if (command === "slowmode") {
             if (adminList.indexOf(ctx.from?.id) >= 0) {
                 if (args !== null) {
-                    if (args[0] === "on") {
-                        active = true;
+                    if (args[0] === "on") { // Enable Slow Mode (/slowmode on).
+                        settings.active = true;
+                        updateSettings();
                         ctx.replyWithHTML(
                             html`Slow Mode is now On.`
                         );
-                    } else if (args[0] === "off") {
-                        active = false;
+                    } else if (args[0] === "off") { // Disable Slow Mode (/slowmode off).
+                        settings.active = false;
+                        updateSettings();
                         ctx.replyWithHTML(
                             html`Slow Mode is now Off.`
+                        );
+                    } else if (args[0] === "mute") { // Change muting time (/slowmode mute <integer bigger or equal to 300>).
+                        if (parseInt(args[1]) >= 300) {
+                            settings.mutingTime = parseInt(args[1]);
+                            updateSettings();
+                            ctx.replyWithHTML(
+                                html`Slow Mode muting time is now ${settings.mutingTime}.`
+                            );
+                        } else if (parseInt(args[1]) < 300) {
+                            ctx.replyWithHTML(
+                                html`Slow Mode muting time cannot be lower than 300 seconds (5 minutes).`
+                            );
+                        } else {
+                            ctx.replyWithHTML(
+                                html`Slow Mode muting time value is invalid.`
+                            );
+                        }
+                    } else if (args[0] === "interval") { // Change interval time (/slowmode interval <integer bigger or equal to 1>).
+                        if (parseInt(args[1]) >= 1) {
+                            settings.postingInterval = parseInt(args[1]);
+                            updateSettings();
+                            ctx.replyWithHTML(
+                                html`Slow Mode interval is now ${settings.postingInterval}.`
+                            );
+                        } else if (parseInt(args[1]) < 1) {
+                            ctx.replyWithHTML(
+                                html`Slow Mode interval cannot be lower than 1 second.`
+                            );
+                        } else {
+                            ctx.replyWithHTML(
+                                html`Slow Mode interval value is invalid.`
+                            );
+                        }
+                    } else if (args[0] === "messages") { // Change max messages (/slowmode messages <integer bigger or equal to 5>).
+                        if (parseInt(args[1]) >= 5) {
+                            settings.maxMessages = parseInt(args[1]);
+                            updateSettings();
+                            ctx.replyWithHTML(
+                                html`Slow Mode max messages is now ${settings.maxMessages}.`
+                            );
+                        } else if (parseInt(args[1]) < 5) {
+                            ctx.replyWithHTML(
+                                html`Slow Mode max messages cannot be lower than 5.`
+                            );
+                        } else {
+                            ctx.replyWithHTML(
+                                html`Slow Mode max messages value is invalid.`
+                            );
+                        }
+                    } else if (args[0] === "settings") { // Print plugin settings (/slowmode settings).
+                        ctx.replyWithHTML(
+                            html`Slow Mode settings:
+                            <code>
+                            active: ${settings.active}
+                            mutingTime: ${settings.mutingTime}
+                            postingInterval: ${settings.postingInterval}
+                            maxMessages: ${settings.maxMessages}
+                            </code>`
+                        );
+                    } else { // Invalid arguments, show Slow Mode commands.
+                        ctx.replyWithHTML(
+                            html`Slow Mode usage:
+                            <code>/slowmode argument value</code>\n
+                            Slow Mode arguments:\n
+                            <code>on</code> - Enables Slow Mode.
+                            <code>off</code> - Disables Slow Mode.
+                            <code>mute</code> - Changes the muting time, in seconds, cannot be lower than 300 seconds (5 minutes).
+                            <code>interval</code> - Changes the interval time, in seconds, cannot be lower than 1 second.
+                            <code>messages</code> - Changes the max messages allowed, cannot be lower than 5 messages.
+                            <code>settings</code> - Shows the current settings for Slow Mode.`
                         );
                     }
                 }
@@ -107,7 +211,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
 
     //logError("[slowmode] New Message from Member in List: " + inList);
 
-    if (active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
+    if (settings.active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
         const s = slowing(ctx, ctx.from);
         slowList.push(s);
         s.chat = String(ctx.chat?.id);
@@ -131,9 +235,9 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
 
     //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Time Difference: " + messageTimeDifference);
 
-    if (messageTimeDifference <= (postingInterval * 1000)) {
+    if (messageTimeDifference <= (settings.postingInterval * 1000)) {
         currentMessage.messageCounter = currentMessage.messageCounter + 1;
-    } else if (messageTimeDifference > (postingInterval * 1000)) {
+    } else if (messageTimeDifference > (settings.postingInterval * 1000)) {
         if (currentMessage.messageCounter > 0) {
             currentMessage.messageCounter = currentMessage.messageCounter - 1;
         }
@@ -141,10 +245,10 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
 
     //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Message Counter: " + currentMessage.messageCounter);
 
-    if (currentMessage.messageCounter >= maxMessages) {
+    if (currentMessage.messageCounter >= settings.maxMessages) {
         let msg;
         const currentOptions = {
-            until_date: Math.floor((Date.now() / 1000) + mutingTime),
+            until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
             can_send_messages: mutedOptions.can_send_messages,
             can_send_media_messages: mutedOptions.can_send_media_messages,
             can_send_polls: mutedOptions.can_send_polls,
@@ -155,7 +259,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             can_pin_messages: mutedOptions.can_pin_messages
         }
         return Promise.all([
-            ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${minutes} minutes`),
+            ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${(settings.mutingTime / 60)} minutes`),
             ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
             currentMessage.messageCounter = 0,
         ]).catch((err) => logError("[slowmode] " + err.message));
