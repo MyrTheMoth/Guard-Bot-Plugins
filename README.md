@@ -9,6 +9,8 @@ Edit the config.js file in your Guard Bot's folder and edit the `plugins:` param
 
 Example: `plugins: ["raidmode.ts", "noinfokick.ts", "captcha.ts", "slowmode.ts"],`
 
+Each plug-in will create a .json file with their own name in the plugin folder, to allow settings changed during runtime to persist across restarts.
+
 ## Captcha
 
 This plugin is a modification of an older and simpler version of the captcha plugin circulating in Guard Bot's support chat, with some fixes for usability and feedback. Mainly, the older version had no way to tell which chat the challenges were being issued, this one makes sure to map the challenges per-user-per-chat to avoid issues if the same person joins multiple chats at once, it also has easier challenges, max attempts, restricts new members to only being able to send text messages until they get verified, deletes all messages the new member posted during the captcha challenge, provides feedback when the answer is incorrect and when it is correct, among other new features from the original.
@@ -17,7 +19,7 @@ This plugin is a modification of an older and simpler version of the captcha plu
 
 The important variables and settings are commented in the code, here's the most important parts:
 
-- `active`: A Boolean, if true, the bot will issue Captcha challenges, can be turned off and on with a `/captcha on|off` command.
+- `active`: A Boolean, if true, the bot will issue Captcha challenges.
 - `challengeTimeout`: An Integer, the time in seconds a new member will have to answer the challenge before being kicked out.
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat for after failing to answer within the challenge time or exceeding the max attempts.
 - `strict`: A Boolean, if true, the bot will delete all messages the user posted during the challenge, whether they pass or fail, for clean up.
@@ -25,6 +27,22 @@ The important variables and settings are commented in the code, here's the most 
 - `unverifiedOptions`: A set of Booleans, the permissions a new member will have once they join the chat and before the pass the challenge.
 - `verifiedOptions`: A set of Booleans, the permissions given to a new member once they pass the challenge.
 - `numbers` and `calc`: An array of Numbers and a set of String operators, these will determine the values and operations used at random when each challenge is issued.
+
+### Commands
+
+Captcha usage:
+
+- `/captcha argument value`
+
+Captcha arguments:
+
+- `on` - Enables Captcha.
+- `off` - Disables Captcha.
+- `timeout` - Changes the challenge timeout, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `strict` - Switches message deletion on challenge ending on and off, boolean, only accepts true or false.
+- `attempts` - Changes the max number of attempts, cannot be lower than 1.
+- `settings` - Shows the current settings for Captcha.
 
 A different parallel version of this plugin, also based on the older simple one, can be found at https://gist.github.com/poeti8/d84dfc4538510366a2d89294ff52b4ae
 
@@ -36,13 +54,31 @@ This plugin checks each new member's profiles and kicks any member whose profile
 
 The important variables and settings are commented in the code, here's the most important parts:
 
-- `active`: A Boolean, if true, the bot will kick new members with incomplete profiles, can be turned off and on with a `/noinfokick on|off` command.
+- `active`: A Boolean, if true, the bot will kick new members with incomplete profiles.
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat after filing to pass the profile check.
 - `checkUsername`: A Boolean, if true, the bot will check if the new member has an username, if they don't, they fail this check.
 - `checkPicture`: A Boolean, if true, the bot will check if the new member has a profile picture, if they don't, they will fail this check.
 - `checkBio`: A Boolean, if true, the bot will check if the new member has a bio, if they don't, they will fail this check.
 - `feedback`: A Boolean, if true, the bot will provide feedback each time a new member is kicked out for failing the profile check.
 - `tolerance`: A Number, a value from 1 to 3, determines the number of profile checks the new member must fail to be kicked out, 2 out of 3 by default.
+
+### Commands
+
+No Info Kick usage:
+
+- `/noinfokick argument value`
+
+No Info Kick arguments:
+
+- `on` - Enables No Info Kick.
+- `off` - Disables No Info Kick.
+- `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `username` - Switches username checking on and off, boolean, only accepts true or false.
+- `picture` - Switches picture checking on and off, boolean, only accepts true or false.
+- `bio` - Switches bio checking on and off, boolean, only accepts true or false.
+- `feedback` - Switches feedback messages on and off, boolean, only accepts true or false.
+- `tolerance` - Changes the tolerance for failure, a number from 1 to 3.
+- `settings` - Shows the current settings for No Info Kick.
 
 ## Raid Mode
 
@@ -52,9 +88,22 @@ This plugin kicks all new members, no questions asked, useful when your chat is 
 
 The important variables and settings are commented in the code, here's the most important parts:
 
-- `active`: A Boolean, default false, if true, the bot will kick all new members, no questions asked, can be turned off and on with a `/raidmode on|off` command.
+- `active`: A Boolean, default false, if true, the bot will kick all new members, no questions asked.
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat during raid mode.
 - `feedback`: A Boolean, if true, it provides feedback on why new members are being kicked, default is false.
+
+### Commands
+
+Raid Mode usage:
+- `/raidmode argument value`
+
+Raid Mode arguments:
+
+- `on` - Enables Raid Mode.
+- `off` - Disables Raid Mode.
+- `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `feedback` - Switches feedback messages on and off, boolean, only accepts true or false.
+- `settings` - Shows the current settings for Raid Mode.
 
 ## Slow Mode
 
@@ -64,11 +113,25 @@ This plugin will mute members that post too many messages too quickly, useful to
 
 The important variables and settings are commented in the code, here's the most important parts:
 
-- `active`: A Boolean, if true, the bot will mute any user that posts too many messages too fast, can be turned off and on with a `/slowmode on|off` command.
+- `active`: A Boolean, if true, the bot will mute any user that posts too many messages too fast.
 - `mutingTime`: An Integer, time in seconds for spamming chat member to be muted for.
 - `postingInterval`: An Integer, time in seconds to be counted between each message for it to count as a penalty.
 - `maxMessages`: An Integer, number of messages that can be posted in succession within the postingInterval, user will be muted if they exceed it.
 - `mutedOptions`: A set of Booleans, the permissions given to a muted user.
+
+### Commands
+
+Slow Mode usage:
+- `/slowmode argument value`
+
+Slow Mode arguments:
+
+- `on` - Enables Slow Mode.
+- `off` - Disables Slow Mode.
+- `mute` - Changes the muting time, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `interval` - Changes the interval time, in seconds, cannot be lower than 1 second.
+- `messages` - Changes the max messages allowed, cannot be lower than 5 messages.
+- `settings` - Shows the current settings for Slow Mode.
 
 ## Credits
 
