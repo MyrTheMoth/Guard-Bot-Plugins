@@ -24,7 +24,20 @@ const { logError } = Log;
 const { getAdmins } = UserStore;
 const fs = Files;
 
-const kickedOnce: number[] = [];
+type seenOnce = {
+    user: number;
+    chat: String;
+};
+
+const userSeen = (u: number, c: String): seenOnce => {
+    const s = {
+        user: u,
+        chat: c
+    };
+    return s;
+}
+
+const kickedOnce: seenOnce[] = [];
 
 const adminList: number[] = [];
 
@@ -233,6 +246,17 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             let profilePictures: UserProfilePhotos;
             let userBio: Chat;
             let fails = 0;
+            let seen = userSeen(x.id, String(ctx.chat?.id));
+            let neverSeen = true;
+            let seenIndex = -1;
+
+            for (var i = 0; i < kickedOnce.length; i++) {
+                if (kickedOnce[i].user === x.id && kickedOnce[i].chat === String(ctx.chat?.id)) {
+                    neverSeen = false;
+                    seenIndex = i;
+                }
+            }
+
             //logError("[noinfokick] New Member: [" + x.id + "] (" + x.username + ") {" + x.first_name + " " + x.last_name + "}\n");
             if (settings.checkUsername) {
                 //logError("[noinfokick] Username: " + x.username + "\n");
@@ -260,7 +284,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     fails = fails + 1;
                 }
             }
-            if ((settings.active) && (fails >= settings.tolerance) && (kickedOnce.indexOf(x.id) < 0) && (!x.is_bot)) {
+            if ((settings.active) && (fails >= settings.tolerance) && neverSeen && (!x.is_bot)) {
                 if (settings.feedback) {
                     ctx.replyWithHTML(html`User ${link(x)} has been kicked under suspicion of being an userbot. \n\n
                         If they aren't an userbot, they may attempt to rejoin in 5 minutes.`);
@@ -270,10 +294,10 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     // );
                 }
                 ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
-                kickedOnce.push(x.id);
+                kickedOnce.push(seen);
             } else {
-                if (kickedOnce.indexOf(x.id) >= 0) {
-                    kickedOnce.splice(kickedOnce.indexOf(x.id), 1);
+                if (!neverSeen) {
+                    kickedOnce.splice(seenIndex, 1);
                 }
                 return next();
             }
