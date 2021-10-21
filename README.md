@@ -133,6 +133,30 @@ Slow Mode arguments:
 - `messages` - Changes the max messages allowed, cannot be lower than 5 messages.
 - `settings` - Shows the current settings for Slow Mode.
 
+## New Restrict
+
+This plugin will restrict new members to only be allowed to post text messages for a set amount of time (5 minutes by default).
+
+### Settings
+
+The important variables and settings are commented in the code, here's the most important parts:
+
+- `active`: A Boolean, if true, the bot will mute any user that posts too many messages too fast.
+- `mutingTime`: An Integer, time in seconds for spamming chat member to be muted for.
+- `mutedOptions`: A set of Booleans, the permissions given to a muted user.
+
+### Commands
+
+New Restrict usage:
+- `/new restrict argument value`
+
+New Restrict arguments:
+
+- `on` - Enables New Restrict.
+- `off` - Disables New Restrict.
+- `mute` - Changes the muting time, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `settings` - Shows the current settings for New Restrict.
+
 ## Credits
 
 Special thanks to the folk in Guard Bot's support chat who were a great help in the making of these and provided the early version of the captcha plugin I based most of these on.
