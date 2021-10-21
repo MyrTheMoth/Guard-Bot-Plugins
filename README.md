@@ -148,7 +148,7 @@ The important variables and settings are commented in the code, here's the most 
 ### Commands
 
 New Restrict usage:
-- `/new restrict argument value`
+- `/newrestrict argument value`
 
 New Restrict arguments:
 
