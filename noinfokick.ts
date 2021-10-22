@@ -14,7 +14,7 @@ let settings = {
     checkPicture: true, // If True, checks if the new member has a profile picture, if they don't, they'll fail this check.
     checkBio: true, // If True, checks if the new member has a bio description, if they don't, they'll fail this check.
     feedback: true, // If True, it will post a message detailing why the user was removed.
-    tolerance: 2, // Value from 1 to 3, determines how many checks the new member must fail to be kicked.
+    tolerance: 2 // Value from 1 to 3, determines how many checks the new member must fail to be kicked.
 }
 
 const { Composer: C } = Telegraf;
