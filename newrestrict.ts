@@ -31,24 +31,6 @@ const { logError } = Log;
 const { getAdmins } = UserStore;
 const fs = Files;
 
-type Restricted = {
-    user: User;
-    chat: string;
-};
-
-const restricting = (
-    ctx: ExtendedContext,
-    x: User,
-): Restricted => {
-    const s = {
-        user: x,
-        chat: "",
-    };
-    return s;
-};
-
-const restrictList: Restricted[] = [];
-
 const adminList: number[] = [];
 
 const settingsFile = "./plugins/newrestrict.json";
@@ -165,29 +147,12 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    let inList = false;
-
-    restrictList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
-
-    //logError("[newrestrict] New Message from Member in List: " + inList);
-
-    if (settings.active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
-        const s = restricting(ctx, ctx.from);
-        restrictList.push(s);
-        s.chat = String(ctx.chat?.id);
-    }
-
-    //logError("[newrestrict] Slow List: " + restrictList.length);
-
-    const currentMessage = restrictList.find(
-        (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
+    const members = ctx.message?.new_chat_members?.filter(
+        (x) => x.username !== ctx.me
     );
-
-    if (!currentMessage) {
+    if (!members || members.length === 0) {
         return next();
     }
-
-    //logError("[newrestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Message Counter: " + currentMessage.messageCounter);
 
     let msg;
     const currentOptions = {
@@ -201,8 +166,17 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         can_invite_users: mutedOptions.can_invite_users,
         can_pin_messages: mutedOptions.can_pin_messages
     }
-    return Promise.all([
-        ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${(settings.mutingTime / 60)} minutes`),
-        ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
-    ]).catch((err) => logError("[newrestrict] " + err.message));
+
+    return Promise.all(
+        members.map(async (x) => {
+            if (settings.active) {
+                ctx.replyWithHTML(
+                    html`User ${link(x)} has been restricted as a new chat member for ${(settings.mutingTime / 60)} minutes.`
+                );
+                ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions);
+            } else {
+                return next();
+            }
+        })
+    ).catch((err) => logError("[newrestrict] " + err.message));
 });
