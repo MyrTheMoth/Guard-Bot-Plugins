@@ -48,7 +48,7 @@ fs.access(settingsFile, fs.F_OK, (err) => {
     if (err) {
         logError("[noinfokick] " + err.message);
         updateSettings();
-        logError("[slowmode] Creating new settings file.");
+        logError("[noinfokick] Creating new settings file.");
         return;
     }
     fs.readFile(settingsFile, "utf-8", (err, data) => {
