@@ -9,7 +9,7 @@ import Files = require('fs');
 
 let settings = {
     active: true, // If True, Bot will mute users who post too many messages too quickly.
-    mutingTime: 300, // Time a slowed user will be muted for in seconds, 5 minutes (300 seconds) by default.
+    mutingTime: 300 // Time a slowed user will be muted for in seconds, 5 minutes (300 seconds) by default.
 }
 
 // Permissions for muted user.
