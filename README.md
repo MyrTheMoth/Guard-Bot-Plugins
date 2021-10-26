@@ -56,9 +56,9 @@ The important variables and settings are commented in the code, here's the most 
 
 - `active`: A Boolean, if true, the bot will kick new members with incomplete profiles.
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat after filing to pass the profile check.
-- `checkUsername`: A Boolean, if true, the bot will check if the new member has an username, if they don't, they fail this check.
-- `checkPicture`: A Boolean, if true, the bot will check if the new member has a profile picture, if they don't, they will fail this check.
-- `checkBio`: A Boolean, if true, the bot will check if the new member has a bio, if they don't, they will fail this check.
+- `Username`: A Boolean, if true, the bot will check if the new member has an username, if they don't, they fail this check.
+- `Picture`: A Boolean, if true, the bot will check if the new member has a profile picture, if they don't, they will fail this check.
+- `Bio`: A Boolean, if true, the bot will check if the new member has a bio, if they don't, they will fail this check.
 - `feedback`: A Boolean, if true, the bot will provide feedback each time a new member is kicked out for failing the profile check.
 - `tolerance`: A Number, a value from 1 to 3, determines the number of profile checks the new member must fail to be kicked out, 2 out of 3 by default.
 
@@ -156,6 +156,78 @@ New Restrict arguments:
 - `off` - Disables New Restrict.
 - `mute` - Changes the muting time, in seconds, cannot be lower than 300 seconds (5 minutes).
 - `settings` - Shows the current settings for New Restrict.
+
+## Media Restrict
+
+This plugin will restrict members to only be able to post text messages when they post too many media or other types of message elements, or if the very first message seen by the bot is one of these types of messages.
+
+### Settings
+
+The important variables and settings are commented in the code, here's the most important parts:
+
+- `active`: A Boolean, if true, bot will mute users who post too many messages too quickly.
+- `feedback`: A Boolean, if true, bot will post a message if an user is restricted.
+- `mutingTime`: An Integer, the amount of time an user will be restricted for.
+- `firstMedia`: A Boolean, if true, users will be restricted immediately if first message seen by the plug-in is some type of media.
+- `restrictScore`: An Integer, the maximum amount of score an user is allowed to accumulate before being restricted.
+- `maxMedia`: An Integer, the amount of media messages needed to increase an user's media posting score.
+- `maxMessages`: An Integer, the amount of non-media messages needed to decrease the user's media posting score.
+- `Username`: A Boolean, if true, @Username mentions count towards a media posting score.
+- `Hashtag`: A Boolean, if true, #Hashtags count towards a media posting score.
+- `URL`: A Boolean, if true, URLs (http(s)://www.example.com) count towards a media posting score.
+- `Email`: A Boolean, if true, Emails (mail@example.com) count towards a media posting score.
+- `Phone`: A Boolean, if true, Phone Numbers (+5 555-5555555) count towards a media posting score.
+- `Animation`: A Boolean, if true, GIFs count towards a media posting score.
+- `Audio`: A Boolean, if true, Audio counts towards a media posting score.
+- `Document`: A Boolean, if true, Documents count towards a media posting score.
+- `Photo`: A Boolean, if true, Photos count towards a media posting score.
+- `Sticker`: A Boolean, if true, Stickers count towards a media posting score.
+- `Video`: A Boolean, if true, Videos count towards a media posting score.
+- `VideoNote`: A Boolean, if true, Video Notes count towards a media posting score.
+- `Voice`: A Boolean, if true, Voice Notes count towards a media posting score.
+- `Contact`: A Boolean, if true, sharing Contacts count towards a media posting score.
+- `Dice`: A Boolean, if true, Dice messages count towards a media posting score.
+- `Game`: A Boolean, if true, Games count towards a media posting score.
+- `Poll`: A Boolean, if true, Polls count towards a media posting score.
+- `Venue`: A Boolean, if true, Venues count towards a media posting score.
+- `Location`: A Boolean, if true, Location counts towards a media posting score.
+
+### Commands
+
+Media Restrict usage:
+- `/mediarestrict argument value`
+
+Media Restrict arguments:
+
+- `on` - Enables Media Restrict.
+- `off` - Disables Media Restrict.
+- `feedback` - Provides feedback when an user is restricted.
+- `mute` - Changes the muting time, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `first` - Changes whether to restrict users if their first seen message is media.
+- `score` - Changes the max score an user can accumulate before being restrcited, cannot be lower than 1.
+- `media` - Changes the max media threshold, cannot be lower than 1 message.
+- `messages` - Changes the max messages threshold, cannot be lower than 1 message.
+- `check` - Changes which type of content is considered a media post, check documentation for options.
+    - `username` - Change if @Username mentions count towards a media posting score or not.
+    - `hashtag` - Change if #Hashtags count towards a media posting score or not.
+    - `url` - Change if URLs (http(s)://www.example.com) count towards a media posting score or not.
+    - `email` - Change if Emails (mail@example.com) count towards a media posting score or not.
+    - `phone` - Change if Phone Numbers (+5 555-5555555) count towards a media posting score or not.
+    - `animation` - Change if GIFs count towards a media posting score or not.
+    - `audio` - Change if Audio files count towards a media posting score or not.
+    - `document` - Change if Documents count towards a media posting score or not.
+    - `photo` - Change if Photos count towards a media posting score or not.
+    - `sticker` - Change if Stickers count towards a media posting score or not.
+    - `video` - Change if Videos count towards a media posting score or not.
+    - `videoNote` - Change if Video Notes count towards a media posting score or not.
+    - `voice` - Change if Voice Notes count towards a media posting score or not.
+    - `contact` - Change if sharing Contacts count towards a media posting score or not.
+    - `dice` - Change if Dice messages count towards a media posting score or not.
+    - `game` - Change if Games count towards a media posting score or not.
+    - `poll` - Change if Polls count towards a media posting score or not.
+    - `venue` - Change if Venues count towards a media posting score or not.
+    - `location` - Change if Location counts towards a media posting score or not.
+- `settings` - Shows the current settings for Media Restrict.
 
 ## Credits
 

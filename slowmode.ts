@@ -248,7 +248,6 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
     //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Message Counter: " + currentMessage.messageCounter);
 
     if (currentMessage.messageCounter >= settings.maxMessages) {
-        let msg;
         const currentOptions = {
             until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
             can_send_messages: mutedOptions.can_send_messages,
