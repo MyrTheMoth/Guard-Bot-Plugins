@@ -575,230 +575,234 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    let inList = false;
+    if (settings.active) {
 
-    let restrictReason = "posting too many media messages";
+        let inList = false;
 
-    restrictList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
+        let restrictReason = "posting too many media messages";
 
-    //logError("[mediarestrict] New Message from Member in List: " + inList);
+        restrictList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
 
-    if (settings.active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
-        const s = restricting(ctx, ctx.from);
-        restrictList.push(s);
-        s.chat = String(ctx.chat?.id);
-    }
+        //logError("[mediarestrict] New Message from Member in List: " + inList);
 
-    const currentMessage = restrictList.find(
-        (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
-    );
+        if (!ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
+            const s = restricting(ctx, ctx.from);
+            restrictList.push(s);
+            s.chat = String(ctx.chat?.id);
+        }
 
-    if (!currentMessage) {
+        const currentMessage = restrictList.find(
+            (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
+        );
+
+        if (!currentMessage) {
+            return next();
+        }
+
+        let hasMedia = false;
+
+        // Media Post Checking Block
+
+        if (settings.checkUsername || settings.checkHashtag || settings.checkURL || settings.checkEmail || settings.checkPhone) {
+            if (ctx.message?.entities?.length > 0) {
+                for (let i = 0; i < ctx.message?.entities?.length; i++) {
+                    let foundType = ctx.message?.entities?.[i].type;
+                    if (foundType === "mention" || foundType === "hashtag" || foundType === "url" || foundType === "email" ||
+                        foundType === "phone_number" || foundType === "text_link" || foundType === "text_mention") {
+                        hasMedia = true;
+                        //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a MessageEntity: " + foundType);
+                    }
+                }
+            }
+        }
+
+        if (settings.checkAnimation) {
+            let foundAnimation = ctx.message?.animation;
+            if (foundAnimation != undefined || foundAnimation != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted an Animation");
+            }
+        }
+
+        if (settings.checkAudio) {
+            let foundAudio = ctx.message?.audio;
+            if (foundAudio != undefined || foundAudio != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted an Audio file");
+            }
+        }
+
+        if (settings.checkDocument) {
+            let foundDocument = ctx.message?.document;
+            if (foundDocument != undefined || foundDocument != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Document");
+            }
+        }
+
+        if (settings.checkPhoto) {
+            let foundPhoto = ctx.message?.photo;
+            if (foundPhoto != undefined || foundPhoto != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Photo");
+            }
+        }
+
+        if (settings.checkSticker) {
+            let foundSticker = ctx.message?.sticker;
+            if (foundSticker != undefined || foundSticker != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Sticker");
+            }
+        }
+
+        if (settings.checkVideo) {
+            let foundVideo = ctx.message?.video;
+            if (foundVideo != undefined || foundVideo != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Video");
+            }
+        }
+
+        if (settings.checkVideoNote) {
+            let foundVideoNote = ctx.message?.video_note;
+            if (foundVideoNote != undefined || foundVideoNote != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Video Note");
+            }
+        }
+
+        if (settings.checkVoice) {
+            let foundVoice = ctx.message?.voice;
+            if (foundVoice != undefined || foundVoice != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Voice Message");
+            }
+        }
+
+        if (settings.checkContact) {
+            let foundContact = ctx.message?.contact;
+            if (foundContact != undefined || foundContact != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Contact");
+            }
+        }
+
+        if (settings.checkDice) {
+            let foundDice = ctx.message?.dice;
+            if (foundDice != undefined || foundDice != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Dice");
+            }
+        }
+
+        if (settings.checkGame) {
+            let foundGame = ctx.message?.game;
+            if (foundGame != undefined || foundGame != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Game");
+            }
+        }
+
+        if (settings.checkPoll) {
+            let foundPoll = ctx.message?.poll;
+            if (foundPoll != undefined || foundPoll != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Poll");
+            }
+        }
+
+        if (settings.checkVenue) {
+            let foundVenue = ctx.message?.venue;
+            if (foundVenue != undefined || foundVenue != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Venue");
+            }
+        }
+
+        if (settings.checkLocation) {
+            let foundLocation = ctx.message?.location;
+            if (foundLocation != undefined || foundLocation != null) {
+                hasMedia = true;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Location");
+            }
+        }
+
+        // Increase counters for text or media messages by this user.
+
+        if (!hasMedia) {
+            currentMessage.messageCounter = currentMessage.messageCounter + 1;
+        } else {
+            currentMessage.mediaCounter = currentMessage.mediaCounter + 1;
+        }
+
+        // Decrease media posting score if the text message threshold is reached.
+        if (currentMessage.messageCounter >= settings.maxMessages) {
+            currentMessage.postingScore = currentMessage.postingScore - 1;
+            currentMessage.messageCounter = 0;
+            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " reached text message threshold, decreasing score to " + currentMessage.postingScore);
+            if (currentMessage.postingScore <= 0) {
+                currentMessage.postingScore = 0;
+            }
+            if (currentMessage.firstMediaPost) {
+                currentMessage.firstMediaPost = false;
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " first seen post wasn't Media");
+            }
+        }
+
+        // Increase media posting score if the media message threshold is reached.
+        if (currentMessage.mediaCounter >= settings.maxMedia) {
+            currentMessage.postingScore = currentMessage.postingScore + 1;
+            currentMessage.mediaCounter = 0;
+            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " reached media message threshold, increasing score to " + currentMessage.postingScore);
+            // Max out the posting score if the very first message seen from this user is a media post.
+            if (settings.firstMedia && currentMessage.firstMediaPost) {
+                currentMessage.postingScore = settings.restrictScore;
+                restrictReason = "first seen post by bot was Media";
+                //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " first seen post was Media");
+            }
+        }
+
+
+        if (currentMessage.postingScore >= settings.restrictScore) {
+            const currentOptions = {
+                until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
+                can_send_messages: mutedOptions.can_send_messages,
+                can_send_media_messages: mutedOptions.can_send_media_messages,
+                can_send_polls: mutedOptions.can_send_polls,
+                can_send_other_messages: mutedOptions.can_send_other_messages,
+                can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
+                can_change_info: mutedOptions.can_change_info,
+                can_invite_users: mutedOptions.can_invite_users,
+                can_pin_messages: mutedOptions.can_pin_messages
+            }
+            let restrictTime = settings.mutingTime / 60;
+            let restrictMessage = "minutes";
+            if ((restrictTime / 60) >= 1) {
+                restrictTime = restrictTime / 60;
+                if (restrictTime == 1) {
+                    restrictMessage = "hour";
+                } else {
+                    restrictMessage = "hours";
+                }
+                if ((restrictTime / 24) >= 1) {
+                    restrictTime = restrictTime / 24;
+                    if (restrictTime == 1) {
+                        restrictMessage = "day";
+                    } else {
+                        restrictMessage = "days";
+                    }
+                }
+            }
+            return Promise.all([
+                (settings.feedback) ? ctx.replyWithHTML(html`${link(ctx.from)} has been restricted for: <code>${restrictReason}</code> for: <code>${restrictTime} ${restrictMessage}</code>`) : false,
+                ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
+                ctx.deleteMessage(ctx.message?.message_id),
+                currentMessage.postingScore = 0,
+            ]).catch((err) => logError("[mediarestrict] " + err.message));
+        }
+    } else {
         return next();
     }
 
-    let hasMedia = false;
-
-    // Media Post Checking Block
-
-    if (settings.checkUsername || settings.checkHashtag || settings.checkURL || settings.checkEmail || settings.checkPhone) {
-        if (ctx.message?.entities?.length > 0) {
-            for (let i = 0; i < ctx.message?.entities?.length; i++) {
-                let foundType = ctx.message?.entities?.[i].type;
-                if (foundType === "mention" || foundType === "hashtag" || foundType === "url" || foundType === "email" ||
-                    foundType === "phone_number" || foundType === "text_link" || foundType === "text_mention") {
-                    hasMedia = true;
-                    //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a MessageEntity: " + foundType);
-                }
-            }
-        }
-    }
-
-    if (settings.checkAnimation) {
-        let foundAnimation = ctx.message?.animation;
-        if (foundAnimation != undefined || foundAnimation != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted an Animation");
-        }
-    }
-
-    if (settings.checkAudio) {
-        let foundAudio = ctx.message?.audio;
-        if (foundAudio != undefined || foundAudio != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted an Audio file");
-        }
-    }
-
-    if (settings.checkDocument) {
-        let foundDocument = ctx.message?.document;
-        if (foundDocument != undefined || foundDocument != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Document");
-        }
-    }
-
-    if (settings.checkPhoto) {
-        let foundPhoto = ctx.message?.photo;
-        if (foundPhoto != undefined || foundPhoto != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Photo");
-        }
-    }
-
-    if (settings.checkSticker) {
-        let foundSticker = ctx.message?.sticker;
-        if (foundSticker != undefined || foundSticker != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Sticker");
-        }
-    }
-
-    if (settings.checkVideo) {
-        let foundVideo = ctx.message?.video;
-        if (foundVideo != undefined || foundVideo != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Video");
-        }
-    }
-
-    if (settings.checkVideoNote) {
-        let foundVideoNote = ctx.message?.video_note;
-        if (foundVideoNote != undefined || foundVideoNote != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Video Note");
-        }
-    }
-
-    if (settings.checkVoice) {
-        let foundVoice = ctx.message?.voice;
-        if (foundVoice != undefined || foundVoice != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Voice Message");
-        }
-    }
-
-    if (settings.checkContact) {
-        let foundContact = ctx.message?.contact;
-        if (foundContact != undefined || foundContact != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Contact");
-        }
-    }
-
-    if (settings.checkDice) {
-        let foundDice = ctx.message?.dice;
-        if (foundDice != undefined || foundDice != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Dice");
-        }
-    }
-
-    if (settings.checkGame) {
-        let foundGame = ctx.message?.game;
-        if (foundGame != undefined || foundGame != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Game");
-        }
-    }
-
-    if (settings.checkPoll) {
-        let foundPoll = ctx.message?.poll;
-        if (foundPoll != undefined || foundPoll != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Poll");
-        }
-    }
-
-    if (settings.checkVenue) {
-        let foundVenue = ctx.message?.venue;
-        if (foundVenue != undefined || foundVenue != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Venue");
-        }
-    }
-
-    if (settings.checkLocation) {
-        let foundLocation = ctx.message?.location;
-        if (foundLocation != undefined || foundLocation != null) {
-            hasMedia = true;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " posted a Location");
-        }
-    }
-
-    // Increase counters for text or media messages by this user.
-
-    if (!hasMedia) {
-        currentMessage.messageCounter = currentMessage.messageCounter + 1;
-    } else {
-        currentMessage.mediaCounter = currentMessage.mediaCounter + 1;
-    }
-
-    // Decrease media posting score if the text message threshold is reached.
-    if (currentMessage.messageCounter >= settings.maxMessages) {
-        currentMessage.postingScore = currentMessage.postingScore - 1;
-        currentMessage.messageCounter = 0;
-        //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " reached text message threshold, decreasing score to " + currentMessage.postingScore);
-        if (currentMessage.postingScore <= 0) {
-            currentMessage.postingScore = 0;
-        }
-        if (currentMessage.firstMediaPost) {
-            currentMessage.firstMediaPost = false;
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " first seen post wasn't Media");
-        }
-    }
-
-    // Increase media posting score if the media message threshold is reached.
-    if (currentMessage.mediaCounter >= settings.maxMedia) {
-        currentMessage.postingScore = currentMessage.postingScore + 1;
-        currentMessage.mediaCounter = 0;
-        //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " reached media message threshold, increasing score to " + currentMessage.postingScore);
-        // Max out the posting score if the very first message seen from this user is a media post.
-        if (settings.firstMedia && currentMessage.firstMediaPost) {
-            currentMessage.postingScore = settings.restrictScore;
-            restrictReason = "first seen post by bot was Media";
-            //logError("[mediarestrict] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " first seen post was Media");
-        }
-    }
-
-
-    if (currentMessage.postingScore >= settings.restrictScore) {
-        const currentOptions = {
-            until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
-            can_send_messages: mutedOptions.can_send_messages,
-            can_send_media_messages: mutedOptions.can_send_media_messages,
-            can_send_polls: mutedOptions.can_send_polls,
-            can_send_other_messages: mutedOptions.can_send_other_messages,
-            can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
-            can_change_info: mutedOptions.can_change_info,
-            can_invite_users: mutedOptions.can_invite_users,
-            can_pin_messages: mutedOptions.can_pin_messages
-        }
-        let restrictTime = settings.mutingTime / 60;
-        let restrictMessage = "minutes";
-        if ((restrictTime / 60) >= 1) {
-            restrictTime = restrictTime / 60;
-            if (restrictTime == 1) {
-                restrictMessage = "hour";
-            } else {
-                restrictMessage = "hours";
-            }
-            if ((restrictTime / 24) >= 1) {
-                restrictTime = restrictTime / 24;
-                if (restrictTime == 1) {
-                    restrictMessage = "day";
-                } else {
-                    restrictMessage = "days";
-                }
-            }
-        }
-        return Promise.all([
-            (settings.feedback) ? ctx.replyWithHTML(html`${link(ctx.from)} has been restricted for: <code>${restrictReason}</code> for: <code>${restrictTime} ${restrictMessage}</code>`) : false,
-            ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
-            ctx.deleteMessage(ctx.message?.message_id),
-            currentMessage.postingScore = 0,
-        ]).catch((err) => logError("[mediarestrict] " + err.message));
-    }
-
-    return next();
 });

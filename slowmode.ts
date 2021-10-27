@@ -207,64 +207,67 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    let inList = false;
+    if (settings.active) {
 
-    slowList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
+        let inList = false;
 
-    //logError("[slowmode] New Message from Member in List: " + inList);
+        slowList.forEach((s) => { if (s.user.id === ctx.from?.id && s.chat === String(ctx.chat?.id)) { inList = true } })
 
-    if (settings.active && !ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
-        const s = slowing(ctx, ctx.from);
-        slowList.push(s);
-        s.chat = String(ctx.chat?.id);
-    }
+        //logError("[slowmode] New Message from Member in List: " + inList);
 
-    //logError("[slowmode] Slow List: " + slowList.length);
+        if (!ctx.from?.is_bot && !inList && (adminList.indexOf(ctx.from?.id) < 0)) {
+            const s = slowing(ctx, ctx.from);
+            slowList.push(s);
+            s.chat = String(ctx.chat?.id);
+        }
 
-    const currentMessage = slowList.find(
-        (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
-    );
+        //logError("[slowmode] Slow List: " + slowList.length);
 
-    if (!currentMessage) {
+        const currentMessage = slowList.find(
+            (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
+        );
+
+        if (!currentMessage) {
+            return next();
+        }
+
+        //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Previous Message Time: " + currentMessage.lastMessageDate.getTime());
+        const newMessageDate = new Date();
+        //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " New Message Time: " + newMessageDate.getTime());
+        const messageTimeDifference = newMessageDate.getTime() - currentMessage.lastMessageDate.getTime();
+        currentMessage.lastMessageDate = newMessageDate;
+
+        //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Time Difference: " + messageTimeDifference);
+
+        if (messageTimeDifference <= (settings.postingInterval * 1000)) {
+            currentMessage.messageCounter = currentMessage.messageCounter + 1;
+        } else if (messageTimeDifference > (settings.postingInterval * 1000)) {
+            if (currentMessage.messageCounter > 0) {
+                currentMessage.messageCounter = currentMessage.messageCounter - 1;
+            }
+        }
+
+        //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Message Counter: " + currentMessage.messageCounter);
+
+        if (currentMessage.messageCounter >= settings.maxMessages) {
+            const currentOptions = {
+                until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
+                can_send_messages: mutedOptions.can_send_messages,
+                can_send_media_messages: mutedOptions.can_send_media_messages,
+                can_send_polls: mutedOptions.can_send_polls,
+                can_send_other_messages: mutedOptions.can_send_other_messages,
+                can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
+                can_change_info: mutedOptions.can_change_info,
+                can_invite_users: mutedOptions.can_invite_users,
+                can_pin_messages: mutedOptions.can_pin_messages
+            }
+            return Promise.all([
+                ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${(settings.mutingTime / 60)} minutes`),
+                ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
+                currentMessage.messageCounter = 0,
+            ]).catch((err) => logError("[slowmode] " + err.message));
+        }
+    } else {
         return next();
     }
-
-    //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Previous Message Time: " + currentMessage.lastMessageDate.getTime());
-    const newMessageDate = new Date();
-    //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " New Message Time: " + newMessageDate.getTime());
-    const messageTimeDifference = newMessageDate.getTime() - currentMessage.lastMessageDate.getTime();
-    currentMessage.lastMessageDate = newMessageDate;
-
-    //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Time Difference: " + messageTimeDifference);
-
-    if (messageTimeDifference <= (settings.postingInterval * 1000)) {
-        currentMessage.messageCounter = currentMessage.messageCounter + 1;
-    } else if (messageTimeDifference > (settings.postingInterval * 1000)) {
-        if (currentMessage.messageCounter > 0) {
-            currentMessage.messageCounter = currentMessage.messageCounter - 1;
-        }
-    }
-
-    //logError("[slowmode] User " + ctx.from?.username + " in Chat " + ctx.chat?.title + " Message Counter: " + currentMessage.messageCounter);
-
-    if (currentMessage.messageCounter >= settings.maxMessages) {
-        const currentOptions = {
-            until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
-            can_send_messages: mutedOptions.can_send_messages,
-            can_send_media_messages: mutedOptions.can_send_media_messages,
-            can_send_polls: mutedOptions.can_send_polls,
-            can_send_other_messages: mutedOptions.can_send_other_messages,
-            can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
-            can_change_info: mutedOptions.can_change_info,
-            can_invite_users: mutedOptions.can_invite_users,
-            can_pin_messages: mutedOptions.can_pin_messages
-        }
-        return Promise.all([
-            ctx.replyWithHTML(html`${link(ctx.from)} is posting too many messages too fast, they have been muted for ${(settings.mutingTime / 60)} minutes`),
-            ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions),
-            currentMessage.messageCounter = 0,
-        ]).catch((err) => logError("[slowmode] " + err.message));
-    }
-
-    return next();
 });

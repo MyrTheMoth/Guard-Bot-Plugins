@@ -233,76 +233,81 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    const members = ctx.message?.new_chat_members?.filter(
-        (x) => x.username !== ctx.me
-    );
-    if (!members || members.length === 0) {
+    if (settings.active) {
+
+        const members = ctx.message?.new_chat_members?.filter(
+            (x) => x.username !== ctx.me
+        );
+        if (!members || members.length === 0) {
+            return next();
+        }
+        return Promise.all(
+            members.map(async (x) => {
+                let username = false;
+                let picture = false;
+                let bio = false;
+                let kickMessage = "";
+                let profilePictures: UserProfilePhotos;
+                let userBio: Chat;
+                let fails = 0;
+                let seen = userSeen(x.id, String(ctx.chat?.id));
+                let neverSeen = true;
+                let seenIndex = -1;
+
+                for (var i = 0; i < kickedOnce.length; i++) {
+                    if (kickedOnce[i].user === x.id && kickedOnce[i].chat === String(ctx.chat?.id)) {
+                        neverSeen = false;
+                        seenIndex = i;
+                    }
+                }
+
+                //logError("[noinfokick] New Member: [" + x.id + "] (" + x.username + ") {" + x.first_name + " " + x.last_name + "}\n");
+                if (settings.checkUsername) {
+                    //logError("[noinfokick] Username: " + x.username + "\n");
+                    if (x.username == null) {
+                        username = true;
+                        kickMessage = kickMessage + "No Username \n";
+                        fails = fails + 1;
+                    }
+                }
+                if (settings.checkPicture) {
+                    profilePictures = await ctx.telegram.getUserProfilePhotos(x.id);
+                    //logError("[noinfokick] Profile Picture Count: " + profilePictures.total_count + "\n");
+                    if (profilePictures.total_count === 0) {
+                        picture = true;
+                        kickMessage = kickMessage + "No Profile Picture \n";
+                        fails = fails + 1;
+                    }
+                }
+                if (settings.checkBio) {
+                    userBio = await ctx.telegram.getChat(x.id);
+                    //logError("[noinfokick] Bio: " + userBio.bio + "\n");
+                    if (userBio.bio == null) {
+                        bio = true;
+                        kickMessage = kickMessage + "No Bio \n";
+                        fails = fails + 1;
+                    }
+                }
+                if ((fails >= settings.tolerance) && neverSeen && (!x.is_bot)) {
+                    if (settings.feedback) {
+                        ctx.replyWithHTML(html`User ${link(x)} has been kicked under suspicion of being an userbot. \n\n
+                        If they aren't an userbot, they may attempt to rejoin in 5 minutes.`);
+                        // ctx.replyWithHTML(
+                        //     html`User ${link(x)} has been kicked as suspicious for: \n
+                        // <code>${kickMessage}</code>`
+                        // );
+                    }
+                    ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
+                    kickedOnce.push(seen);
+                } else {
+                    if (!neverSeen) {
+                        kickedOnce.splice(seenIndex, 1);
+                    }
+                    return next();
+                }
+            })
+        ).catch((err) => logError("[noinfokick] " + err.message));
+    } else {
         return next();
     }
-    return Promise.all(
-        members.map(async (x) => {
-            let username = false;
-            let picture = false;
-            let bio = false;
-            let kickMessage = "";
-            let profilePictures: UserProfilePhotos;
-            let userBio: Chat;
-            let fails = 0;
-            let seen = userSeen(x.id, String(ctx.chat?.id));
-            let neverSeen = true;
-            let seenIndex = -1;
-
-            for (var i = 0; i < kickedOnce.length; i++) {
-                if (kickedOnce[i].user === x.id && kickedOnce[i].chat === String(ctx.chat?.id)) {
-                    neverSeen = false;
-                    seenIndex = i;
-                }
-            }
-
-            //logError("[noinfokick] New Member: [" + x.id + "] (" + x.username + ") {" + x.first_name + " " + x.last_name + "}\n");
-            if (settings.checkUsername) {
-                //logError("[noinfokick] Username: " + x.username + "\n");
-                if (x.username == null) {
-                    username = true;
-                    kickMessage = kickMessage + "No Username \n";
-                    fails = fails + 1;
-                }
-            }
-            if (settings.checkPicture) {
-                profilePictures = await ctx.telegram.getUserProfilePhotos(x.id);
-                //logError("[noinfokick] Profile Picture Count: " + profilePictures.total_count + "\n");
-                if (profilePictures.total_count === 0) {
-                    picture = true;
-                    kickMessage = kickMessage + "No Profile Picture \n";
-                    fails = fails + 1;
-                }
-            }
-            if (settings.checkBio) {
-                userBio = await ctx.telegram.getChat(x.id);
-                //logError("[noinfokick] Bio: " + userBio.bio + "\n");
-                if (userBio.bio == null) {
-                    bio = true;
-                    kickMessage = kickMessage + "No Bio \n";
-                    fails = fails + 1;
-                }
-            }
-            if ((settings.active) && (fails >= settings.tolerance) && neverSeen && (!x.is_bot)) {
-                if (settings.feedback) {
-                    ctx.replyWithHTML(html`User ${link(x)} has been kicked under suspicion of being an userbot. \n\n
-                        If they aren't an userbot, they may attempt to rejoin in 5 minutes.`);
-                    // ctx.replyWithHTML(
-                    //     html`User ${link(x)} has been kicked as suspicious for: \n
-                    // <code>${kickMessage}</code>`
-                    // );
-                }
-                ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
-                kickedOnce.push(seen);
-            } else {
-                if (!neverSeen) {
-                    kickedOnce.splice(seenIndex, 1);
-                }
-                return next();
-            }
-        })
-    ).catch((err) => logError("[noinfokick] " + err.message));
 });

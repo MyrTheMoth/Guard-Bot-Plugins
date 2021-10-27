@@ -147,36 +147,36 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    const members = ctx.message?.new_chat_members?.filter(
-        (x) => x.username !== ctx.me
-    );
-    if (!members || members.length === 0) {
-        return next();
-    }
+    if (settings.active) {
 
-    let msg;
-    const currentOptions = {
-        until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
-        can_send_messages: mutedOptions.can_send_messages,
-        can_send_media_messages: mutedOptions.can_send_media_messages,
-        can_send_polls: mutedOptions.can_send_polls,
-        can_send_other_messages: mutedOptions.can_send_other_messages,
-        can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
-        can_change_info: mutedOptions.can_change_info,
-        can_invite_users: mutedOptions.can_invite_users,
-        can_pin_messages: mutedOptions.can_pin_messages
-    }
+        const members = ctx.message?.new_chat_members?.filter(
+            (x) => x.username !== ctx.me
+        );
+        if (!members || members.length === 0) {
+            return next();
+        }
 
-    return Promise.all(
-        members.map(async (x) => {
-            if (settings.active) {
+        const currentOptions = {
+            until_date: Math.floor((Date.now() / 1000) + settings.mutingTime),
+            can_send_messages: mutedOptions.can_send_messages,
+            can_send_media_messages: mutedOptions.can_send_media_messages,
+            can_send_polls: mutedOptions.can_send_polls,
+            can_send_other_messages: mutedOptions.can_send_other_messages,
+            can_add_web_page_previews: mutedOptions.can_add_web_page_previews,
+            can_change_info: mutedOptions.can_change_info,
+            can_invite_users: mutedOptions.can_invite_users,
+            can_pin_messages: mutedOptions.can_pin_messages
+        }
+
+        return Promise.all(
+            members.map(async (x) => {
                 ctx.replyWithHTML(
                     html`User ${link(x)} has been restricted as a new chat member for ${(settings.mutingTime / 60)} minutes.`
                 );
                 ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, currentOptions);
-            } else {
-                return next();
-            }
-        })
-    ).catch((err) => logError("[newrestrict] " + err.message));
+            })
+        ).catch((err) => logError("[newrestrict] " + err.message));
+    } else {
+        return next();
+    }
 });

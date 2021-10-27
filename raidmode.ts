@@ -151,25 +151,26 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    const members = ctx.message?.new_chat_members?.filter(
-        (x) => x.username !== ctx.me
-    );
-    if (!members || members.length === 0) {
-        return next();
-    }
+    if (settings.active) {
 
-    return Promise.all(
-        members.map(async (x) => {
-            if (settings.active) {
+        const members = ctx.message?.new_chat_members?.filter(
+            (x) => x.username !== ctx.me
+        );
+        if (!members || members.length === 0) {
+            return next();
+        }
+
+        return Promise.all(
+            members.map(async (x) => {
                 if (settings.feedback) {
                     ctx.replyWithHTML(
                         html`User ${link(x)} has been kicked due to the chat being in Raid Mode.`
                     );
                 }
                 ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
-            } else {
-                return next();
-            }
-        })
-    ).catch((err) => logError("[raidmode] " + err.message));
+            })
+        ).catch((err) => logError("[raidmode] " + err.message));
+    } else {
+        return next();
+    }
 });
