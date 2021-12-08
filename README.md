@@ -231,7 +231,7 @@ Media Restrict arguments:
 
 ## Anti Anon
 
-This plugin is a workaround for a new Telegram feature that allows users in public chats to post as an alternate anonymous identity and can be easily use to impersonate chat members or spread misinformation, this plugin will delete any messages posted under user id 777000, which the anonymous messages fall back to, posing as Telegram's own official service notification user id.
+This plugin is a workaround for a new Telegram feature that allows users in public chats to post as an alternate anonymous identity and can be easily used to impersonate chat members or spread misinformation, this plugin will delete any messages posted under user id 777000, which the anonymous messages fall back to, posing as Telegram's own official service notification user id.
 
 ### Settings
 
