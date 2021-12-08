@@ -336,7 +336,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     activeChallenges.push(c);
                     const msg = await ctx.replyWithHTML(
                         html`Welcome ${link(x)}, please solve the following arithmetic operation in ${(settings.challengeTimeout / 60)} minutes: \n\n
-                <code>${c.math[0]}</code> \n\n
+                <code>${c.math[0]} = ?</code> \n\n
                 Note: Results can be negative, don't forget the (-) sign if so`
                     );
                     c.chat = String(ctx.chat?.id);

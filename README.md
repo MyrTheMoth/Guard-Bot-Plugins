@@ -229,6 +229,27 @@ Media Restrict arguments:
     - `location` - Change if Location counts towards a media posting score or not.
 - `settings` - Shows the current settings for Media Restrict.
 
+## Anti Anon
+
+This plugin is a workaround for a new Telegram feature that allows users in public chats to post as an alternate anonymous identity and can be easily use to impersonate chat members or spread misinformation, this plugin will delete any messages posted under user id 777000, which the anonymous messages fall back to, posing as Telegram's own official service notification user id.
+
+### Settings
+
+The important variables and settings are commented in the code, here's the most important parts:
+
+- `active`: A Boolean, default false, if true, the bot will delete all anonymous messages.
+
+### Commands
+
+Anti Anon usage:
+- `/antianon argument value`
+
+Anti Anon arguments:
+
+- `on` - Enables Anti Anon.
+- `off` - Disables Anti Anon.
+- `settings` - Shows the current settings for Anti Anon.
+
 ## Credits
 
 Special thanks to the folk in Guard Bot's support chat who were a great help in the making of these and provided the early version of the captcha plugin I based most of these on.
