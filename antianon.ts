@@ -129,4 +129,5 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
     } else {
         return next();
     }
+    return next();
 });
