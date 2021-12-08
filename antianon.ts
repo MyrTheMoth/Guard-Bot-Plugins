@@ -117,7 +117,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
 
     if (settings.active) {
 
-        if (!ctx.from && ctx.from?.is_bot && (adminList.indexOf(ctx.from?.id) < 0)) {
+        if (ctx.from?.is_bot) {
             return next();
         }
 
