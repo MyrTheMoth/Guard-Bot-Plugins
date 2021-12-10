@@ -121,7 +121,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
             return next();
         }
 
-        if (ctx.from?.id === 777000) {
+        if ((ctx.from?.id === 777000 || ctx.from?.id === 136817688) && !ctx.message?.is_automatic_forward) {
             return Promise.all([
                 ctx.deleteMessage(ctx.message?.message_id),
             ]).catch((err) => logError("[antianon] " + err.message));
