@@ -116,11 +116,6 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
     }
 
     if (settings.active) {
-
-        if (ctx.from?.is_bot) {
-            return next();
-        }
-
         if ((ctx.from?.id === 777000 || ctx.from?.id === 136817688) && !ctx.message?.is_automatic_forward) {
             return Promise.all([
                 ctx.deleteMessage(ctx.message?.message_id),
