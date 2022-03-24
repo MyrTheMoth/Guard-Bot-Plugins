@@ -186,7 +186,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                 }
                 ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
                 if (settings.joinDelete) {
-                    ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
+                    ctx.deleteMessage(ctx.message?.message_id);
                 }
             })
         ).catch((err) => logError("[raidmode] " + err.message));
