@@ -146,6 +146,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                             active: ${settings.active}
                             kickCooldown: ${settings.kickCooldown}
                             feedback: ${settings.feedback}
+                            joinDelete: ${settings.joinDelete}
                             </code>`
                         );
                     } else { // Invalid arguments, show Raid Mode commands.
