@@ -9,7 +9,8 @@ import Files = require('fs');
 let settings = {
     active: false, // If True, all new members will be kicked.
     kickCooldown: 300, // Time before a kicked user can attempt to join the chat again in 5 minutes (300 seconds) by default.
-    feedback: false // If True, it will post a message detailing why the user was removed.
+    feedback: false, // If True, it will post a message detailing why the user was removed.
+    joinDelete: true // If True, it will delete all join messages.
 }
 
 const { Composer: C } = Telegraf;
@@ -124,6 +125,20 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                                 html`Raid Mode feedback is disabled.`
                             );
                         }
+                    } else if (args[0] === "join") { // Change Raid Mode joinDelete (/raidmode join <true or false>).
+                        if (args[1] == "true") {
+                            settings.joinDelete = true;
+                            updateSettings();
+                            ctx.replyWithHTML(
+                                html`Raid Mode will delete join messages.`
+                            );
+                        } else if (args[1] == "false") {
+                            settings.joinDelete = false;
+                            updateSettings();
+                            ctx.replyWithHTML(
+                                html`Raid Mode will not delete join messages.`
+                            );
+                        }
                     } else if (args[0] === "settings") { // Print plugin settings (/raidmode settings).
                         ctx.replyWithHTML(
                             html`Raid Mode settings:
@@ -142,6 +157,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                             <code>off</code> - Disables Raid Mode.
                             <code>cooldown</code> - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
                             <code>feedback</code> - Switches feedback messages on and off, boolean, only accepts true or false.
+                            <code>join</code> - Switches deleting join messages on and off, boolean, only accepts true or false.
                             <code>settings</code> - Shows the current settings for Raid Mode.`
                         );
                     }
@@ -168,6 +184,9 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     );
                 }
                 ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
+                if (settings.joinDelete) {
+                    ctx.kickChatMember(x.id, Math.floor((Date.now() / 1000) + settings.kickCooldown));
+                }
             })
         ).catch((err) => logError("[raidmode] " + err.message));
     } else {

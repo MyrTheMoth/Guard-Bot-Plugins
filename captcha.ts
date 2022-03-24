@@ -12,7 +12,8 @@ let settings = {
     challengeTimeout: 1800, // Time before Bot kicks the user for not answer, 30 minutes (1800 seconds) by default.
     kickCooldown: 300, // Time before a kicked user can attempt to join the chat again in 5 minutes (300 seconds) by default.
     strict: true, // If True, deletes all messages by unverified users that aren't answers.
-    maxAttempts: 3 // Max number of attempts before kicking the unverified user.
+    maxAttempts: 3, // Max number of attempts before kicking the unverified user.
+    exclude: [] // List of chats to exclude from this plugin's actions.
 }
 
 // Permissions for the new user when they join the chat.
@@ -134,6 +135,16 @@ function updateSettings() {
     });
 }
 
+function updateExclusion(e) {
+    if (settings.exclude.indexOf(e) < 0) {
+        settings.exclude.push(e);
+        return 0;
+    } else {
+        settings.exclude.splice(settings.exclude.indexOf(e), 1);
+        return 1;
+    }
+}
+
 export = C.mount("message", async (ctx: ExtendedContext, next) => {
     // Populate the list of Admins
     if (adminList.length < 1) {
@@ -238,6 +249,18 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                                 html`Captcha max attempts value is invalid.`
                             );
                         }
+                    } else if (args[0] === "exclude") { // Changes if the plugin will work on this chat or not (/captcha exclude).
+                        let exclusionResult = updateExclusion(String(ctx.chat?.id));
+                        updateSettings();
+                        if (exclusionResult === 0) {
+                            ctx.replyWithHTML(
+                                html`Captcha will stop working in this chat.`
+                            );
+                        } else if (exclusionResult === 1) {
+                            ctx.replyWithHTML(
+                                html`Captcha will resume working in this chat.`
+                            );
+                        }
                     } else if (args[0] === "settings") { // Print plugin settings (/captcha settings).
                         ctx.replyWithHTML(
                             html`Captcha settings:
@@ -247,6 +270,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                             kickCooldown: ${settings.kickCooldown}
                             strict: ${settings.strict}
                             maxAttempts: ${settings.maxAttempts}
+                            exclude: ${settings.exclude}
                             </code>`
                         );
                     } else { // Invalid arguments, show Captcha commands.
@@ -260,6 +284,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                             <code>cooldown</code> - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
                             <code>strict</code> - Switches message deletion on challenge ending on and off, boolean, only accepts true or false.
                             <code>attempts</code> - Changes the max number of attempts, cannot be lower than 1.
+                            <code>exclude</code> - Changes if the plugin will work on this chat or not.
                             <code>settings</code> - Shows the current settings for Captcha.`
                         );
                     }
@@ -269,7 +294,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         }
     }
 
-    if (settings.active) {
+    if (settings.active && settings.exclude.indexOf(String(ctx.chat?.id)) < 0) {
 
         const members = ctx.message?.new_chat_members?.filter(
             (x) => x.username !== ctx.me

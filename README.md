@@ -24,6 +24,7 @@ The important variables and settings are commented in the code, here's the most 
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat for after failing to answer within the challenge time or exceeding the max attempts.
 - `strict`: A Boolean, if true, the bot will delete all messages the user posted during the challenge, whether they pass or fail, for clean up.
 - `maxAttempts`: An Integer, the maximum number of wrong answers the user can provide before the bot kicks them out.
+- `exclude`: An Array of Strings, a list of chats to exclude from this plugin's functionality.
 - `unverifiedOptions`: A set of Booleans, the permissions a new member will have once they join the chat and before the pass the challenge.
 - `verifiedOptions`: A set of Booleans, the permissions given to a new member once they pass the challenge.
 - `numbers` and `calc`: An array of Numbers and a set of String operators, these will determine the values and operations used at random when each challenge is issued.
@@ -42,6 +43,7 @@ Captcha arguments:
 - `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
 - `strict` - Switches message deletion on challenge ending on and off, boolean, only accepts true or false.
 - `attempts` - Changes the max number of attempts, cannot be lower than 1.
+- `exclude` - Changes if the plugin will work on this chat or not.
 - `settings` - Shows the current settings for Captcha.
 
 A different parallel version of this plugin, also based on the older simple one, can be found at https://gist.github.com/poeti8/d84dfc4538510366a2d89294ff52b4ae
@@ -91,6 +93,7 @@ The important variables and settings are commented in the code, here's the most 
 - `active`: A Boolean, default false, if true, the bot will kick all new members, no questions asked.
 - `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat during raid mode.
 - `feedback`: A Boolean, if true, it provides feedback on why new members are being kicked, default is false.
+- `joinDelete`: A Boolean, if true, it will delete all join messages, default is true.
 
 ### Commands
 
@@ -103,6 +106,7 @@ Raid Mode arguments:
 - `off` - Disables Raid Mode.
 - `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
 - `feedback` - Switches feedback messages on and off, boolean, only accepts true or false.
+- `join` - Switches deleting join messages on and off, boolean, only accepts true or false.
 - `settings` - Shows the current settings for Raid Mode.
 
 ## Slow Mode
