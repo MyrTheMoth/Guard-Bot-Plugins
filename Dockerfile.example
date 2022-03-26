@@ -1,0 +1,41 @@
+FROM node:lts-alpine
+
+WORKDIR /app
+
+COPY package.json ./
+
+RUN apk add --no-cache --virtual build-deps \
+    git \
+    python \
+    g++ \
+    build-base \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    musl-dev \
+    giflib-dev \
+    pixman-dev \
+    pangomm-dev \
+    libjpeg-turbo-dev \
+    freetype-dev
+
+RUN apk add --update  --repository http://dl-3.alpinelinux.org/alpine/edge/testing libmount ttf-dejavu ttf-droid ttf-freefont ttf-liberation ttf-ubuntu-font-family fontconfig
+
+RUN npm install
+
+RUN apk del build-deps
+
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    musl \
+    giflib \
+    pixman \
+    pangomm \
+    libjpeg-turbo \
+    freetype
+
+COPY . .
+
+CMD npm start

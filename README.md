@@ -11,6 +11,18 @@ Example: `plugins: ["raidmode.ts", "noinfokick.ts", "captcha.ts", "slowmode.ts"]
 
 Each plug-in will create a .json file with their own name in the plugin folder, to allow settings changed during runtime to persist across restarts.
 
+### Extra
+
+#### Image Captcha Dependencies
+
+For Image Captcha, the plugin uses the 'captchagen' library by yocontra, located at https://github.com/yocontra/captchagen
+
+This library additionally requires the use of Canvas, which also has dependencies for Cairo, follow the installation instructions located at https://github.com/Automattic/node-canvas/wiki
+
+You must run `npm install https://github.com/yocontra/captchagen.git` in the Guard Bot folder after Canvas and Cairo dependencies are met.
+
+For dockerized installations, refer to the `Dockerfile.example` in this project, you may replace your Guard Bot's Dockerfile with it to build a new image with the required dependencies, depending on your system's architecture, some adjustments may be needed.
+
 ## Captcha
 
 This plugin is a modification of an older and simpler version of the captcha plugin circulating in Guard Bot's support chat, with some fixes for usability and feedback. Mainly, the older version had no way to tell which chat the challenges were being issued, this one makes sure to map the challenges per-user-per-chat to avoid issues if the same person joins multiple chats at once, it also has easier challenges, max attempts, restricts new members to only being able to send text messages until they get verified, deletes all messages the new member posted during the captcha challenge, provides feedback when the answer is incorrect and when it is correct, among other new features from the original.
@@ -43,6 +55,44 @@ Captcha arguments:
 - `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
 - `strict` - Switches message deletion on challenge ending on and off, boolean, only accepts true or false.
 - `attempts` - Changes the max number of attempts, cannot be lower than 1.
+- `exclude` - Changes if the plugin will work on this chat or not.
+- `settings` - Shows the current settings for Captcha.
+
+A different parallel version of this plugin, also based on the older simple one, can be found at https://gist.github.com/poeti8/d84dfc4538510366a2d89294ff52b4ae
+
+## Image Captcha
+
+A modification of the first captcha plugin, this one sends an image with a random string of letters, colors and random shapes. It requires some extra dependencies not present in Guard Bot by default, refer to the extra installation information for this plugin in the Installation section.
+
+### Settings
+
+The important variables and settings are commented in the code, here's the most important parts:
+
+- `active`: A Boolean, if true, the bot will issue Captcha challenges.
+- `challengeTimeout`: An Integer, the time in seconds a new member will have to answer the challenge before being kicked out.
+- `kickCooldown`: An Integer, the time in seconds a new member will be kicked out of the chat for after failing to answer within the challenge time or exceeding the max attempts.
+- `strict`: A Boolean, if true, the bot will delete all messages the user posted during the challenge, whether they pass or fail, for clean up.
+- `maxAttempts`: An Integer, the maximum number of wrong answers the user can provide before the bot kicks them out.
+- `maxRegens`: An Integer, the maximum number of times a new captcha can be requested.
+- `exclude`: An Array of Strings, a list of chats to exclude from this plugin's functionality.
+- `unverifiedOptions`: A set of Booleans, the permissions a new member will have once they join the chat and before the pass the challenge.
+- `verifiedOptions`: A set of Booleans, the permissions given to a new member once they pass the challenge.
+
+### Commands
+
+Captcha usage:
+
+- `/captcha argument value`
+
+Captcha arguments:
+
+- `on` - Enables Captcha.
+- `off` - Disables Captcha.
+- `timeout` - Changes the challenge timeout, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `cooldown` - Changes the kick cooldown, in seconds, cannot be lower than 300 seconds (5 minutes).
+- `strict` - Switches message deletion on challenge ending on and off, boolean, only accepts true or false.
+- `attempts` - Changes the max number of attempts, cannot be lower than 1.
+- `regens` - Changes the max number of new captcha requests, cannot be lower than 1.
 - `exclude` - Changes if the plugin will work on this chat or not.
 - `settings` - Shows the current settings for Captcha.
 
@@ -259,3 +309,5 @@ Anti Anon arguments:
 Special thanks to the folk in Guard Bot's support chat who were a great help in the making of these and provided the early version of the captcha plugin I based most of these on.
 
 Guard Bot project can be found at: https://github.com/thedevs-network/the-guard-bot
+
+Captchagen can be found at: https://github.com/yocontra/captchagen

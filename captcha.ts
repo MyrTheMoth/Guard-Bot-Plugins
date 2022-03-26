@@ -299,12 +299,28 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
         const members = ctx.message?.new_chat_members?.filter(
             (x) => x.username !== ctx.me
         );
+        const memberLeft = ctx.message?.left_chat_member;
         if (!members || members.length === 0) {
             const foundChallenge = activeChallenges.find(
                 (x) => (x.user.id === ctx.from?.id && x.chat === String(ctx.chat?.id))
             );
             if (!foundChallenge) {
                 return next();
+            }
+            if (memberLeft) {
+                if (memberLeft.id === foundChallenge.user.id) {
+                    clearTimeout(foundChallenge.kickTimeout);
+                    activeChallenges.splice(activeChallenges.indexOf(foundChallenge), 1);
+                    return Promise.all([
+                        ctx.message?.message_id
+                            ? ctx.deleteMessage(ctx.message?.message_id)
+                            : Promise.resolve(true),
+                        ctx.deleteMessage(foundChallenge.messageId),
+                        foundChallenge.deleteList.forEach(number => {
+                            ctx.deleteMessage(number);
+                        }),
+                    ]).catch((err) => logError("[captcha] " + err.message));
+                }
             }
             if (Number(ctx.message?.text) === foundChallenge.math[1]) {
                 //logError("Correct Answer: \n" + ctx.message?.text + " " + foundChallenge.math[1] + "\n" + ctx.chat?.id + " " + foundChallenge.chat);
@@ -326,11 +342,19 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                 //logError("Wrong Answer: \n" + ctx.message?.text + " " + foundChallenge.math[1] + "\n" + ctx.chat?.id + " " + foundChallenge.chat);
                 if (foundChallenge.attempts >= 1) {
                     let msg;
+                    let replyMessage;
+                    foundChallenge.attempts = foundChallenge.attempts - 1;
+                    if (foundChallenge.attempts > 1) {
+                        replyMessage = html`Sorry, ${link(ctx.from)}, that answer is incorrect, you have ${foundChallenge.attempts} attempts left, try again!`;
+                    } else if (foundChallenge.attempts === 1) {
+                        replyMessage = html`Sorry, ${link(ctx.from)}, that answer is incorrect, you have ${foundChallenge.attempts} attempt left, try again!`;
+                    } else {
+                        replyMessage = html`Sorry, ${link(ctx.from)}, that answer is incorrect, this is your last attempt, try again!`;;
+                    }
                     return Promise.all([
                         foundChallenge.deleteList.push(ctx.message?.message_id),
-                        msg = await ctx.replyWithHTML(html`Sorry, ${link(ctx.from)}, that answer is incorrect, you have ${foundChallenge.attempts} attempts left, try again!`),
+                        msg = await ctx.replyWithHTML(replyMessage),
                         foundChallenge.deleteList.push(msg?.message_id),
-                        foundChallenge.attempts = foundChallenge.attempts - 1,
                     ]).catch((err) => logError("[captcha] " + err.message));
                 } else {
                     clearTimeout(foundChallenge.kickTimeout);
