@@ -333,7 +333,7 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     ]).catch((err) => logError("[captcha] " + err.message));
                 }
             }
-            if (ctx.message?.text === foundChallenge.text) {
+            if (String(ctx.message?.text).toLowerCase() === foundChallenge.text) {
                 //logError("Correct Answer: \n" + ctx.message?.text + " " + foundChallenge.math[1] + "\n" + ctx.chat?.id + " " + foundChallenge.chat);
                 clearTimeout(foundChallenge.kickTimeout);
                 activeChallenges.splice(activeChallenges.indexOf(foundChallenge), 1);
@@ -349,9 +349,9 @@ export = C.mount("message", async (ctx: ExtendedContext, next) => {
                     ctx.telegram.restrictChatMember(ctx.chat?.id, ctx.from?.id, verifiedOptions),
                 ]).catch((err) => logError("[captcha] " + err.message));
             }
-            if (ctx.message?.text !== foundChallenge.text) {
+            if (String(ctx.message?.text).toLowerCase() !== foundChallenge.text) {
                 //logError("Wrong Answer: \n" + ctx.message?.text + " " + foundChallenge.math[1] + "\n" + ctx.chat?.id + " " + foundChallenge.chat);
-                if (ctx.message?.text === "new" && foundChallenge.regens > 0) {
+                if (String(ctx.message?.text).toLowerCase() === "new" && foundChallenge.regens > 0) {
                     var imageCaptcha = captchagen.create();
                     imageCaptcha.generate();
                     let captionMessage;
